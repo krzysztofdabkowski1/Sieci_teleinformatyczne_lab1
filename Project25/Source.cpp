@@ -39,7 +39,7 @@ int bit_par(vector <char> znak) {
 	if (suma % 2 == 0) suma = 0;
 	else suma = 1;
 	//cout << "Bit parzystosci: " << suma << endl;
-	return suma;
+	return suma;//
 }*/
 int suma_modulo(vector <char> znak) {
 	int i = 0, suma = 0;
