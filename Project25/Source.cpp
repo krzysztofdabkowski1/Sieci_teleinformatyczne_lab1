@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <time.h>
-//#pragma warning(disable:4996)
+//https://docs.google.com/spreadsheets/d/1TEMAQipYx6IGz3JQt0zzMQnM_xoSjhrmMQVAMGUpcjk/edit?usp=sharing
 
 using namespace std;
 
@@ -21,26 +21,24 @@ void dec_to_bin(char znak,int bajt[8])
 int bit_par(vector <char> znak) {
 	int suma = 0, tab[] = {1,2,4,8,16,32,64};
 	for (int i = 0; i < znak.size(); i++) {
-		for (int j = 0; j < 7; j++) 
-			if ((znak[i] &tab[j]) == tab[j]) suma++;
+		for (int j = 0; j < 7; j++) {
+			if ((znak[i] & tab[j]) == tab[j]) suma++;
+		}
 	}
 	return suma%2;
 }
 int suma_modulo(vector <char> znak) {
-	int i = 0, suma = 0;
-	while (i<znak.size()) {
-
-		suma += znak[i];
-		i++;
-	}
-	suma = suma %128;
+	int suma = 0;
+	for (int i = 0; i < znak.size();i++) suma += znak[i];
+	cout <<endl<< suma<<endl;
+	suma %=128;
 	return suma;
 }
-int CRC(vector<char> &znak) {
+int CRC(vector<char> znak) {
 	int i = 0,suma=0;
 	int bajt[8] = {0,0,0,0,0,0,0,0};
-	vector <long long int> v;
-	vector <int> dzielnik{1,1,0,1,0,0,1,0};
+	vector <int> v;
+	vector <int> dzielnik{1,1,0,1,0,0,1};
 	for (i; i < znak.size();i++) {
 		//cout << znak[i];
 		dec_to_bin(znak[i],bajt);
@@ -63,6 +61,7 @@ int CRC(vector<char> &znak) {
 		suma += v[i] * pow(2, v.size()-i);
 		cout << v[i];
 	}
+	cout <<endl;
 	return suma;
 }
 
@@ -81,26 +80,25 @@ bool is_repeated(vector <int> repeat_bajt, vector <int> repeat_bit, int bajt, in
 }
 
 void error_maker(vector <char> &znak) {
-	int wrong_bits = znak.size()*8*0.1;
+	int wrong_bits = znak.size()*8*0.01;
 
 	cout << endl<<wrong_bits << endl;
-	int bajt, bit;
-	vector <int> repeat_bajt,repeat_bit;
+	int byte, bit;
+	vector <int> repeat_byte,repeat_bit;
 	srand(time(0));
 	for (int i = 0; i < wrong_bits; i++) {
-		
 		do {
-			bajt = random(znak.size());
+			byte = random(znak.size());
 			bit = pow(2, random(8));
-		} while (is_repeated(repeat_bajt, repeat_bit, bajt, bit) == true);
-		repeat_bajt.push_back(bajt);
+		} while (is_repeated(repeat_byte, repeat_bit, byte, bit) == true);
+		repeat_byte.push_back(byte);
 		repeat_bit.push_back(bit);
 		
-		if ((char)bit != (znak[bajt]&(char)bit)) {
-			znak[bajt] |= char(bit);
+		if (bit != (znak[byte]&bit)) {
+			znak[byte] |= bit;
 		}
 		else {
-			znak[bajt] &= (char)~bit;
+			znak[byte] &= ~bit;
 		}
 		
 	}
@@ -110,10 +108,9 @@ void error_maker(vector <char> &znak) {
 	}*/
 	cout << endl;
 }
-int main()
-{
+vector <char> Read(string name) {
 	vector <char> znak;
-	ifstream is("plik.txt", std::ifstream::binary);
+	ifstream is(name, std::ifstream::binary);
 	if (is) {
 		is.seekg(0, is.end);
 		int length = is.tellg();
@@ -121,54 +118,46 @@ int main()
 		char * buffer = new char[length + 1];
 		is.read(buffer, length);
 		for (int i = 0; i < length; i++) znak.push_back(buffer[i]);
-
-		//cout.write(buffer, length);
+	//	cout.write(buffer, length);
 		cout << endl;
 		delete[] buffer;
 	}
 	is.close();
-	
-	ofstream os("plik2.txt", std::ofstream::binary);
-	
-	//znak.push_back(suma_modulo(znak));
-	znak.push_back(CRC(znak));
-	//znak.push_back(bit_par(znak));
-	error_maker(znak);
+	return znak;
+}
+void Write(string name,vector <char> znak) {
+	ofstream os(name, std::ofstream::binary);
 	os.write(znak.data(), znak.size());
 	os.close();
-	
-	
-	vector <char> znak2;
-	char last_letter;
-	ifstream is2("plik2.txt", std::ifstream::binary);
-	if (is2)
-	{
-		is2.seekg(0, is2.end);
-		int length = is2.tellg();
-		is2.seekg(0, is2.beg);
-		char * buffer2 = new char[length + 1];
-		is2.read(buffer2, length);
-		//cout.write(buffer2, length);
-		cout << endl;
-		for (int i = 0; i < length; i++) {
-			znak2.push_back(buffer2[i]);
-			//cout << znak2[i];
-		}
-		last_letter = znak2[znak2.size() - 1];
-		znak2.pop_back();
-		delete[] buffer2;
-		is2.close();
-	}
+}
+void print(vector <char> tekst) {
+	for (int i = 0; i < tekst.size(); i++)cout << tekst[i];
+}
+int main()
+{
+	vector <char> tekst = Read("plik.txt");
 
-	//if (bit_par(znak2) == last_letter) cout << endl << "zgodny bit parzystosci" << endl;
-	//else cout << "bledny bit parzystosci" << endl;
+	//tekst.push_back(suma_modulo(tekst));
+	tekst.push_back(CRC(tekst));
+	//tekst.push_back(bit_par(tekst));
 
-	//if (suma_modulo(znak2) == last_letter) cout << endl << "zgodna suma modulo" << endl;
+	print(tekst);
+	Write("plik2.txt", tekst);
+	vector <char> tekst2 = Read("plik2.txt");
+	error_maker(tekst2);
+	print(tekst2);
+	int last_letter=tekst2[tekst2.size() - 1];
+	tekst2.pop_back();
+
+	//if (bit_par(tekst2) == last_letter) cout << endl << "zgodny bit parzystosci" << endl;
+	//else cout <<endl<< "bledny bit parzystosci" << endl;
+	
+	//if (suma_modulo(tekst2) == last_letter) cout << endl << "zgodna suma modulo" << endl;
 	//else cout << "bledna suma modulo" << endl;
-	znak2.push_back(CRC(znak2));
-	if (znak2[znak2.size()-1] == last_letter) cout << endl << "zgodne CRC" << endl;
+
+	if (CRC(tekst2) == last_letter) cout << endl << "zgodne CRC" << endl;
 	else cout << "bledne CRC" << endl;
+
 	system("pause");
 	return 0;
-	
 }
