@@ -25,6 +25,7 @@ int bit_par(vector <char> znak) {
 			if ((znak[i] & tab[j]) == tab[j]) suma++;
 		}
 	}
+	cout << endl << suma << endl;
 	return suma%2;
 }
 int suma_modulo(vector <char> znak) {
@@ -56,10 +57,11 @@ int CRC(vector<char> znak) {
 		}
 		i++;
 	}
-	cout << "CRC: ";
+	cout<<endl << "CRC: ";
+	for (int i = 0; i < v.size(); i++) cout << v[i];
 	for (int i = v.size() - dzielnik.size() +1; i < v.size(); i++) {
 		suma += v[i] * pow(2, v.size()-i);
-		cout << v[i];
+		//cout << v[i];
 	}
 	cout <<endl;
 	return suma;
@@ -80,7 +82,7 @@ bool is_repeated(vector <int> repeat_bajt, vector <int> repeat_bit, int bajt, in
 }
 
 void error_maker(vector <char> &znak) {
-	int wrong_bits = znak.size()*8*0.01;
+	int wrong_bits = znak.size()*8*0.05;
 
 	cout << endl<<wrong_bits << endl;
 	int byte, bit;
@@ -140,7 +142,7 @@ int main()
 	//tekst.push_back(suma_modulo(tekst));
 	tekst.push_back(CRC(tekst));
 	//tekst.push_back(bit_par(tekst));
-
+	
 	print(tekst);
 	Write("plik2.txt", tekst);
 	vector <char> tekst2 = Read("plik2.txt");
@@ -148,7 +150,6 @@ int main()
 	print(tekst2);
 	int last_letter=tekst2[tekst2.size() - 1];
 	tekst2.pop_back();
-
 	//if (bit_par(tekst2) == last_letter) cout << endl << "zgodny bit parzystosci" << endl;
 	//else cout <<endl<< "bledny bit parzystosci" << endl;
 	
@@ -157,7 +158,7 @@ int main()
 
 	if (CRC(tekst2) == last_letter) cout << endl << "zgodne CRC" << endl;
 	else cout << "bledne CRC" << endl;
-
+	
 	system("pause");
 	return 0;
 }
