@@ -23,27 +23,27 @@ void dec_to_bin(int liczba, int bajt[8])
 //	for (int i = 0; i < 8; i++) cout << bajt[i];
 	//cout << endl;
 }
-int bit_par(vector <char> znak) {
+void bit_par(vector <char> znak,int &wynik) {
 	int suma = 0, tab[] = {1,2,4,8,16,32,64,128};
 	for (int i = 0; i < znak.size(); i++) {
 		for (int j = 0; j < 8; j++) {
 			if ((znak[i] & tab[j]) == tab[j]) suma++;
 		}
 	}
-	cout << endl << suma << endl;
-	return suma%2;
+	cout << endl <<"Suma bitow: "<< suma << endl;
+	wynik= suma%2;
 }
-int suma_modulo(vector <char> znak) {
+void suma_modulo(vector <char> znak,int &wynik) {
 	int suma = 0;
 	for (int i = 0; i < znak.size();i++) suma += znak[i];
-	cout <<endl<< suma<<endl;
 	suma %=128;
-	return suma;
+	cout << endl <<"Suma modulo: "<< suma << endl;
+	wynik= suma;
 }
-int CRC(vector<char> znak) {
+void CRC(vector<char> znak,int wynik[2]) {
 	int i = 0,suma=0,bajt[8];
 	vector <int> v;
-	vector <int> dzielnik{1,1,0,1,0,0,1};
+	vector <int> dzielnik{1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,0 };
 	for (i; i < znak.size();i++) {
 		//cout <<i<<" "<<(int) znak[i]<<" ";
 		dec_to_bin(znak[i],bajt);
@@ -54,7 +54,7 @@ int CRC(vector<char> znak) {
 	int vec_size = v.size();
 	for (int i = 0; i < dzielnik.size()-1; i++) v.push_back(0);
 	i = 0;
-	while (i < vec_size) {
+	while (i <vec_size) {
 		if (v[i] == 1) {
 			for (int j = 0; j < dzielnik.size(); j++)
 				v[i + j] = (v[i + j] + dzielnik[j]) % 2;
@@ -62,13 +62,22 @@ int CRC(vector<char> znak) {
 		i++;
 	}
 	cout<<endl << "CRC: ";
-	//for (int i = 0; i < v.size(); i++) cout << v[i];
-	for (int i = v.size() - dzielnik.size() +1; i < v.size(); i++) {
-		suma += v[i] * pow(2, v.size()-i);
-		cout << v[i];
+	for (int i = 0; i < v.size(); i++) cout << v[i];
+	for (int i = vec_size; i < vec_size+8; i++) {
+		suma += v[i] * pow(2, v.size()-i-8);
+		//cout << v[i];
 	}
+	wynik[0] = suma;
+
+	suma = 0;
+	for (int i = vec_size+8; i < v.size(); i++) {
+		suma += v[i] * pow(2, v.size() - i);
+		//cout << v[i];
+	}
+	wynik[1] = suma;
+	
 	cout <<endl;
-	return suma;
+
 }
 
 int random(int zakres) {
@@ -140,32 +149,41 @@ void print(vector <char> tekst) {
 }
 int main()
 {
-	
+	int wynik[2];
 	
 	vector <char> tekst = Read("plik.txt");
-	//tekst.push_back(suma_modulo(tekst));
-	//tekst.push_back(CRC(tekst));
-	tekst.push_back(bit_par(tekst));
-	
 	print(tekst);
+
+	//suma_modulo(tekst,wynik[0]);
+	CRC(tekst,wynik);
+	//bit_par(tekst,wynik[0]);
+
+	
+	
+	tekst.push_back(wynik[0]);
+	tekst.push_back(wynik[1]);
+
+	
 	Write("plik2.txt", tekst);
 	vector <char> tekst2 = Read("plik2.txt");
-	error_maker(tekst2);
+	//error_maker(tekst2);
 	print(tekst2);
 	Write("plik3.txt", tekst2);
 	int last_letter=tekst2[tekst2.size() - 1];
-	tekst2.pop_back();
+	//tekst2.pop_back();
 
-
-	if (bit_par(tekst2) == last_letter) cout << endl << "zgodny bit parzystosci" << endl;
-	else cout <<endl<< "bledny bit parzystosci" << endl;
+	//bit_par(tekst2, wynik[0]);
+	//if ( wynik[0]== last_letter) cout << endl << "zgodny bit parzystosci" << endl;
+	//else cout <<endl<< "bledny bit parzystosci" << endl;
 	
-	//if (suma_modulo(tekst2) == last_letter) cout << endl << "zgodna suma modulo" << endl;
-	//else cout << "bledna suma modulo" << endl;
+	//suma_modulo(tekst2, wynik[0]);
+	//if (wynik[0] == last_letter) cout << endl << "zgodna suma modulo" << endl;
+	//else cout <<endl<< "bledna suma modulo" << endl;
 
-	//if (CRC(tekst2) == last_letter) cout << endl << "zgodne CRC" << endl;
-	//else cout << "bledne CRC" << endl;
-	
+	CRC(tekst2, wynik);
+	if (wynik[0] == 0 &&wynik[1]==0) cout << endl << "zgodne CRC" << endl;
+	else cout <<endl<< "bledne CRC" << endl;
+
 	
 	system("pause");
 	return 0;
